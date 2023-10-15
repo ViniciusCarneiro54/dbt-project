@@ -1,3 +1,4 @@
+-- Model Customer
 with janela as (
     select *,
     first_value(customer_id)

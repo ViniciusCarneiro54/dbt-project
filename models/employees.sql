@@ -1,4 +1,4 @@
--- Modelo 2
+-- Model Employees
 select
     *,
     datediff(year, birth_date, current_date) as age,
