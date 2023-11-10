@@ -120,6 +120,7 @@ select * from treinamento.tb_pk2
 
 
 ----8: criar uma tabela com chave primaria composta
+-- VFC Quais campos identifica o registro como unico? a combinação de letra + ID
 create table treinamento.tb_pk3
 (
 id smallint,
@@ -129,8 +130,10 @@ constraint pk_composta primary key (id, letra)
 )
 
 --9: inserir registros
+-- Poxa Vinicius mas você tá passando o 1 tres vezes, nao importa! A chave PK é combinação dos dois
+-- Se a letra não se repetir não tem problema!
 insert into treinamento.tb_pk3 (id, letra, nome)
-values (1,'A','Lorena'), (1,'B','Ana'), (1,'C','Sergio')
+values (1,'A','Pedro'), (1,'B','Ana'), (1,'C','Maria')
 
 --10: consultar tabela (Veja que aceita o mesmo ID, porém! Com letra diferente)
 select * from treinamento.tb_pk3
@@ -167,9 +170,11 @@ values (1,'E','Marcos')
 
 
 /*********** foreing key ***********/
---1: simular modelagem - Dono(1) x (N)Animal - Animal(N) x (1)Raca
--- VFC (Primeiro criar tabela que vai ceder chave primeiro, 
---se eu tentar criar animal primeiro vai da erro)
+/* 1: simular modelagem - Dono(1) x (N)Animal - Animal(N) x (1)Raca
+- 1 dono pode ter varios animais, 1 animal pode ter 1 raca, e 1 raca em varios animais
+-VFC (Primeiro criar tabela que vai ceder chave primeiro, 
+se eu tentar criar animal primeiro vai da erro)
+- Mostrar no DB DIAGRAM*/
 
 --2: criar tabela de raça
 create table treinamento.tb_raca(
@@ -208,6 +213,7 @@ values ('Lorena'), ('Luiz')
 select * from treinamento.tb_dono
 
 --VFC(E agora como faço para inserir dados dentro de uma tabela que tem FK?)
+--VFC(Lembrando, a tabela animal vai ter o cód animal, FK do dono, e FK da Raça)
 --7: inserir tabela animal
 insert into treinamento.tb_animal(animal_nome, animal_codDono, animal_codRaca)
 values ('Zeus',1,1), ('Atena', 2,2)
@@ -240,8 +246,8 @@ ERRO APRESENTADO: NÃO É POSSÍVEL EXCLUIR UM REGISTRO QUE ESTA SENDO UTILIZADO CO
 delete from TREINAMENTO.tb_dono
 where dono_cod = 2
 
---VFC(EXEMPLO COMPRAS SITE AMERICANAS, MONTE DE COMPRAS CLIENTES X PEDIDOS, COMPROU POR 5 ANOS)
--- Tem pedidos que estão vinculados a fulano.
+--VFC(EXEMPLO COMPRAS SITE AMERICANAS, MONTE DE COMPRAS tabela CLIENTES X  PEDIDOS, COMPROU POR 5 ANOS)
+-- Tem pedidos que estão vinculados a fulano, então não pode excluir e ficaria venda avulsa.
 
 
 
@@ -277,6 +283,8 @@ COLUNA QUE POSSUI A CONSTRAINT NOT NULL
 */
 insert into treinamento.tb_notNull(letra_1,letra_2)
 values (null, 'E')
+-- Quando colocamos NOT null o SQL obriga a colocar um valor, tipo cadastro de um aluno e não preencher nome
+-- 
 --OU
 insert into treinamento.tb_notNull(letra_2)
 values ('F')
@@ -285,10 +293,15 @@ values ('F')
 --VFC(Site de cadastro que tem * para preenchimento obrigatorio)
 
 --4.1: inserido um valor em branco na coluna 1
+-- Tentar inserir com string nulo '' Vazio é diferente de nulo
 insert into treinamento.tb_notNull(letra_1,letra_2)
 values ('', 'E')
--- Tentar inserir com string nulo ('', 'NULL') Ele não deixa por causa do char(1)
 
+
+-- Tentar inserir com palavra'NULL') 
+-- Pegadinha, nulo é diferente de nulo - Ele não deixa por causa do char(1)
+insert into treinamento.tb_notNull(letra_1,letra_2)
+values ('', 'null')
 
 --5: consultar dados da da tabela
 select * from treinamento.tb_notNull
@@ -308,7 +321,11 @@ id smallint primary key identity,
 letra char(1) default ('A'),
 dt date constraint df_data default (getdate()) not null
 )
---VFC(Explicar o getdate(), CURRENT_TIMESTAMP > SQL PADRÃO)
+-- QUando não passar valor para as colunas com default, o sql vai assumir os valores default
+--VFC(Explicar o getdate() o que é? Função que traz hora do server, CURRENT_TIMESTAMP > SQL PADRÃO)
+select getdate()
+select CURRENT_TIMESTAMP
+select SYSDATETIME()
 
 --2: inserir registro na letra e deixar a data default
 insert into treinamento.tb_default (letra)
@@ -316,12 +333,13 @@ values ('K')
 
 --3: inserir registro na data e deixar letra default
 insert into treinamento.tb_default (dt)
-values ('2021-04-25')
+values ('2023-05-01')
 
 --4: consultando tabela
 select * from treinamento.tb_default
 
 --5: tabela com coluna de data de insert da linha
+-- Comum quando fazemos ingestão de dados, preenche com a data do sistema quando um registro entrou tabela
 create table treinamento.tb_default2
 (
 id char(4),
@@ -332,16 +350,17 @@ dtInsert date constraint df_DtInsert default (getdate()) not null
 
 --6: inserindo um registro não informando a data de insert
 insert into treinamento.tb_default2 (id, nome,valor)
-values ('V001', 'Luiz', 10)
+values ('V001', 'Ana', 10)
 
 --6.1: inserindo a mesma venda em outro dia
 insert into treinamento.tb_default2 (id, nome,valor,dtInsert)
-values ('V001', 'Luiz', 10, '2021-07-16')
+values ('V001', 'Ana', 10, '2023-11-01')
 
->> Correlação com exemplo do pedido EXCEL (modelagem), colunas (PEDIDO/STATUS/DT_INSERT)
->> data serve para controle no merge também, se alguma coisa muda ele atualiza
+-->> Correlação com exemplo do pedido EXCEL (modelagem), colunas (PEDIDO/STATUS/DT_INSERT só muda data)
+-->> data serve para controle no merge também, se alguma coisa muda ele atualiz
+-->> Ag pagto/ Pg realizado/ Em separação/ Enviado para transp/ Em entrega/ Entregue
 
->> FAZER TESTE (VALOR NULO COMO TEXTO)
+-->> FAZER TESTE (VALOR NULO COMO TEXTO)
 insert into treinamento.tb_default2 (id, nome, valor, dtInsert)
 values ('V001', 'Null', 10, '2021-07-17') 
 
@@ -357,7 +376,7 @@ select * from treinamento.tb_default2
 
 
 
-
+-- VFC (Para finalizar temos o check)
 
 /************ CHECK ***********/
 --1: criar tabela
@@ -369,6 +388,7 @@ valor smallmoney constraint chk_valor check (valor > 0)
 )
 
 --2: inserir os registros - com os dois valores corretos
+-- Caminho feliz, inserir de acordo com o que está na checagem
 insert into treinamento.tb_check (letra, valor)
 values ('A', 10)
 
@@ -377,6 +397,7 @@ values ('A', 10)
 ERRO APRESENTADO: NÃO É POSSÍVEL INSERIR UM VALOR DIFERENTE 
 DO QUE FOI DEFINIDO PARA A COLUNA QUE CONTÉM A CONSTRAINT CHECK
 */
+-- Vamos começar estourar erro:
 insert into treinamento.tb_check (letra, valor)
 values ('D', 10)
 
@@ -388,15 +409,18 @@ DIFERENTE DO QUE FOI DEFINIDO PARA A COLUNA QUE CONTÉM A CONSTRAINT CHECK
 insert into treinamento.tb_check (letra, valor)
 values ('B', 0)
 
-
+-- Teste se é case sensitive a letra
 insert into treinamento.tb_check (letra, valor)
 values ('a', 1)
 
 --5: consultando tabela
 select * from treinamento.tb_check
 
->> Quem deveria fazer um check em um coisa de produção, quem deve tratar é o frontend,
->> Se não entra requisião da aplicação para o banco validar e depois retornar o erro para app
+-->> mostar exemplo medland
+-->> Quem deveria fazer um check em um coisa de produção, quem deve tratar é o frontend,
+-->> Se não entra requisião da aplicação para o banco validar e depois retornar o erro para app
+
+
 
 
 
@@ -407,13 +431,14 @@ select * from treinamento.tb_check
 select *
 from treinamento.Customers
 order by city ASC
->> Se eu não passar nada ele leva em consideração a ordem de inserção dos dados
+-->> Se eu não passar nada ele leva em consideração a ordem de inserção dos dados
+-->> Mas SP aparece 4x ? a coluna tem mais registros.
 
 --2: ordenando descendente (maior para o menor)
 select *
 from treinamento.Customers
 order by city desc
->> Z para A
+-->> Z para A
 
 --2.1: ordenando por data
 select *
@@ -421,18 +446,19 @@ from treinamento.Orders
 order by OrderDate desc
 
 --2.2: ordenando valores nulos
+-- E seu botar orderby em uma coluna que tenha nuloS?
 select *
 from treinamento.Orders
 order by ShipRegion asc
+-->> MOSTRAR COMO DESCENDENTE QUE OS NULOS VEM FINAL
 ------------------------------------------------------------------------------
->> MOSTRAR COMO DESCENDENTE QUE OS NULOS VEM FINAL
-
 --3: ordenando por mais de uma coluna - pais ascendente e cidade descendente 
 select *
 from treinamento.Customers
 order by Country asc, city desc
 ------------------------------------------------------------------------------
->> Tambem posso ordernar pelo endereço, e dar um wheree no brasil
+-->> Eu poderia chegar na cidade
+-- E tambem ordernar pelo endereço, dando um wheree no brasil -- Mostrar resultado com e sem addres
 
 select *
 from treinamento.Customers
@@ -444,9 +470,9 @@ order by Country asc, city desc , Address asc
 select *
 from treinamento.Products
 where UnitPrice = 18
->> MOSTRAR COM VALOR 18.99 (NAO RETORNA É PQ NÃO TEM NADA NA TABELA)
+-->> MOSTRAR COM VALOR 18.99 (NAO RETORNA É PQ NÃO TEM NADA NA TABELA)
 ------------------------------------------------------------------------------
-
+-- Também posso usar com nomes
 select *
 from treinamento.Products
 where ProductName = 'Filo mix'
@@ -501,9 +527,9 @@ select *
 from treinamento.Customers
 where Country = 'Brazil'
  or city = 'Buenos Aires'
- or Region = 'BC' << CANADA
+ or Region = 'BC' --<< CANADA
 ------------------------------------------------------------------------------
->> Vinicius, posso utilizar o AND e OR junto? Pode
+-->> Vinicius, posso utilizar o AND e OR junto? Pode
 select *
 from treinamento.Customers
 where Country = 'Brazil' and (Region is null or Region = 'SP') << ISOLANDO
@@ -540,12 +566,12 @@ and ShipPostalCode is null
 --17: IN lista de valores, ele vai verificar se um dos valores passados existe na coluna
 select *
 from treinamento.Orders
-where ShipCity in ('Recife', 'Belo Horizonte', 'Montréal', 'Alagoas')
+where ShipCity in ('Buenos Aires', 'Belo Horizonte', 'Montréal')
 
 --18: IN lista de valores, ele vai verificar se um dos valores passados existe na coluna
 select *
 from treinamento.Orders
-where EmployeeID in (55555,1,2, 4568247)
+where EmployeeID in (560, 1, 2, 450)
 
 /*
 19: NOT IN inverso da lista de valores, ele vai verificar se um dos 
@@ -570,11 +596,11 @@ where ShipCity in (
 --21: BETWEEN valores entre X e Y - valores numericos
 select *
 from treinamento.Orders
-where Freight between 1 and 10.5
+where Freight between 5 and 10.5
 
 select *
 from treinamento.Orders
-where Freight >= 1 and Freight <= 10.5
+where Freight >= 10 and Freight <= 50
 
 
 --22: BETWEEN valores entre X e Y - valores de data
@@ -664,6 +690,7 @@ from treinamento.Customers as tbcli
 
 
 --Ambiguous column name 'City'.
+-- Primeiro fazer a query só com City
 select 
 	--city,
 	tbemp.City as 'Cidade Funcionario',
@@ -684,11 +711,11 @@ order by [Cidade Funcionario]
 
 
 --30: CASE/IIF É SEMELHANTE AO IF ELSE
-SELECT 
+SELECT
 	CASE Region -- MANEIRA 1 COLUNA NO CASE
 		WHEN 'SP' THEN 'SUDESTE - BRAZIL'
 		WHEN 'RJ' THEN 'SUDESTE - BRAZIL'
-		WHEN 'PE' THEN 'NORDESTE - BRAZIL'
+		WHEN 'RS' THEN 'SUL - BRAZIL'
 		ELSE 'OUTRA REGIÃO'
 	END AS ANALISE_CASE_01
 		
@@ -698,8 +725,8 @@ SELECT
 		WHEN Country = 'BRAZIL' AND Region = 'RJ' THEN 'RJ - BRAZIL'
 		ELSE 'OUTROS VALORES'
 	END AS ANALISE_CASE_02
-
-	,IIF (Country = 'BRAZIL' AND Region = 'SP','VERDADEIRO','FALSO') AS ANALISE_IIF
+-- IIF Especifico do SQL SERVER
+	,IIF (Country = 'BRAZIL' AND Region = 'SP', 'VERDADEIRO', 'FALSO') AS ANALISE_IIF
 ,*
 FROM treinamento.Customers
 where Country = 'Brazil'
@@ -748,7 +775,23 @@ where status_func = 'A'
 */
 
 
-
+/* -- Gerar tabela primeiro na parte de join!
+-- Extração de relatorio com condições: 
+1) Salario maior ou igual 900 e Data de admissao maior ou igual 2018 = +20%
+2) Salario entre 2000 e 4000 = +10%
+3) Salario maior que 4000 = +100 reais
+*/
+SELECT
+NOME,
+SALARIO,
+DATAADMISSAO,
+CASE
+	WHEN SALARIO >=900 AND YEAR(DATAADMISSAO) >= 2018 THEN CAST(SALARIO * 1.2 AS DECIMAL(10,2))
+	WHEN SALARIO BETWEEN 2000 AND 4000 THEN CAST(SALARIO * 1.1 AS DECIMAL(10,2))
+	WHEN SALARIO > 4000 THEN CAST(SALARIO + 100 AS DECIMAL(10,2))
+ELSE CAST(SALARIO AS DECIMAL(10,2))
+END SALARIO_NOVO
+FROM treinamento.FUNCIONARIO
 
 
 
@@ -907,7 +950,7 @@ SE HOUVER UM LEFT JOIN SEM O OUTER, NÃO SE PREOCUPE, O OUTER ESTA IMPLICITO
 		,F.CODDEPTO AS FK_FUNC_DEPARTAMENTO
 		,D.CODIGO AS PK_DEPARTAMENTO
 	FROM treinamento.FUNCIONARIO as F
-		LEFT JOIN treinamento.DEPARTAMENTO as D 
+		LEFT OUTER JOIN treinamento.DEPARTAMENTO as D 
 			ON F.CODDEPTO = D.CODIGO
 
 /*
@@ -989,142 +1032,6 @@ SELECT
 FROM treinamento.FUNCIONARIO as F
 	CROSS JOIN treinamento.DEPARTAMENTO as D
 
-
-/*
-SELF JOIN - QUANDO A TABELA SE RELACIONA COM ELA MESMA
-
-
-BEBIDAS > LATICIO > LEITE > FERMENTADOS > 
-BEBIDAS > ALCOOLICAS > VINHO >  
-BEBIDAS > ALCOOLICAS > CERVEJA >  
-
-CATEGORIA
-*/
-
-
-SELECT 
-F.NOME AS FUNCIONARIO,
-F.MATRICULA AS MATRICULA_FUNCIONARIO,
-F.CODSUPERVISOR AS CODSUP_FUNCIONARIO,
-S.MATRICULA AS MATRICULA_SUPERVISOR,
-S.NOME AS SUPERVISOR ,
-S.CODSUPERVISOR AS CODSUP_SUP
-FROM treinamento.FUNCIONARIO F -- FUNCIONARIOS QUE TEM O CODSUPERVISOR PREENCHIDO
-          RIGHT JOIN treinamento.FUNCIONARIO S -- FUNCIONARIOS QUE NÃO TEM O CODSUPERVISOR PREENCHIDO, OU SEJA, O CHEFE
-	ON F.CODSUPERVISOR = S.MATRICULA
-
-
-
-
-
-/*CRIANDO TABELA DE CATEGORIAS*/
-CREATE TABLE TREINAMENTO.CATEGORIA (
-  categ_codigo int PRIMARY KEY IDENTITY,
-  categ_descricao varchar(255) NOT NULL,
-  categ_codCateg_pai int  DEFAULT NULL,
-  FOREIGN KEY (categ_codCateg_pai) REFERENCES TREINAMENTO.CATEGORIA (categ_codigo) 
-);
-
-
-/*INSERINDO ARVORE DE CATEGORIAS*/
-
-INSERT INTO TREINAMENTO.CATEGORIA(categ_descricao,categ_codCateg_pai) 
-VALUES('Eletronicos',NULL);
-
-INSERT INTO TREINAMENTO.CATEGORIA(categ_descricao,categ_codCateg_pai)  
-VALUES('Laptops & PC',1);
-
-INSERT INTO TREINAMENTO.CATEGORIA(categ_descricao,categ_codCateg_pai) 
-VALUES('Laptops',2);
-
-INSERT INTO TREINAMENTO.CATEGORIA(categ_descricao,categ_codCateg_pai) 
-VALUES('PC',2);
-
-INSERT INTO TREINAMENTO.CATEGORIA(categ_descricao,categ_codCateg_pai) 
-VALUES('Cameras & Foto',1);
-
-INSERT INTO TREINAMENTO.CATEGORIA(categ_descricao,categ_codCateg_pai) 
-VALUES('Camera',5);
-
-INSERT INTO TREINAMENTO.CATEGORIA(categ_descricao,categ_codCateg_pai) 
-VALUES('Telefones & Acessorios',1);
-
-INSERT INTO TREINAMENTO.CATEGORIA(categ_descricao,categ_codCateg_pai) 
-VALUES('Smartphones',7);
-
-INSERT INTO TREINAMENTO.CATEGORIA(categ_descricao,categ_codCateg_pai) 
-VALUES('Android',8);
-
-INSERT INTO TREINAMENTO.CATEGORIA(categ_descricao,categ_codCateg_pai) 
-VALUES('iOS',8);
-
-INSERT INTO TREINAMENTO.CATEGORIA(categ_descricao,categ_codCateg_pai) 
-VALUES('Outros Smartphones',8);
-
-INSERT INTO TREINAMENTO.CATEGORIA(categ_descricao,categ_codCateg_pai) 
-VALUES('baterias',7);
-
-INSERT INTO TREINAMENTO.CATEGORIA(categ_descricao,categ_codCateg_pai) 
-VALUES('Headsets',7);
-
-INSERT INTO TREINAMENTO.CATEGORIA(categ_descricao,categ_codCateg_pai) 
-VALUES('Protetores de tela',7);
-
---consultando tabela de categorias
-select *
-FROM TREINAMENTO.CATEGORIA
-
-
---retornando categoria pai - Onde não possui codigo de categoria pai
-SELECT
-    categ_codigo, categ_descricao
-FROM TREINAMENTO.CATEGORIA
-WHERE categ_codCateg_pai IS NULL;
-
-
---retornando as categorias que tem a categoria pai igual a 1
-SELECT
-    categ_codigo, categ_descricao
-FROM TREINAMENTO.CATEGORIA
-WHERE categ_codCateg_pai = 1
-
---retornando as categorias que não tem filhos
-SELECT
-    c1.categ_codigo, c1.categ_descricao
-FROM TREINAMENTO.CATEGORIA c1
-        LEFT JOIN TREINAMENTO.CATEGORIA c2 
-		ON c2.categ_codCateg_pai = c1.categ_codigo
-WHERE c2.categ_codigo IS NULL;
-
-
-
--- retornando categorias pais e filhos. Recursividade utilizando JOIN - necessário saber qual o ultimo nível da hierarquia
-SELECT
-     L0.categ_descricao AS L0, L0.categ_descricao AS caminho
-    ,L1.categ_descricao AS L1, IIF(L1.categ_descricao is not null, concat(L0.categ_descricao, ' > ', L1.categ_descricao ), null) AS caminho
-	,L2.categ_descricao AS L2, IIF(L2.categ_descricao is not null, concat(L0.categ_descricao, ' > ', L1.categ_descricao, ' > ' , L2.categ_descricao ), null) AS caminho
-	,L3.categ_descricao AS L3, IIF(L3.categ_descricao is not null, concat(L0.categ_descricao, ' > ', L1.categ_descricao, ' > ' , L2.categ_descricao, ' > ', L3.categ_descricao ), null) AS caminho
-	,L4.categ_descricao AS L4, IIF(L4.categ_descricao is not null, concat(L0.categ_descricao, ' > ', L1.categ_descricao, ' > ' , L2.categ_descricao, ' > ', L3.categ_descricao, ' > ', L4.categ_descricao ), null) AS caminho
-	,L5.categ_descricao AS L5, IIF(L5.categ_descricao is not null, concat(L0.categ_descricao, ' > ', L1.categ_descricao, ' > ' , L2.categ_descricao, ' > ', L3.categ_descricao, ' > ', L4.categ_descricao, ' > ', L5.categ_descricao ), null) AS caminho
-FROM
-    TREINAMENTO.CATEGORIA AS L0
-    
-	LEFT JOIN TREINAMENTO.CATEGORIA AS L1
-		ON L0.categ_codigo = L1.categ_codCateg_pai
-
-    LEFT JOIN TREINAMENTO.CATEGORIA AS L2
-		ON L1.categ_codigo = L2.categ_codCateg_pai
-    
-	LEFT JOIN TREINAMENTO.CATEGORIA AS L3
-		ON L2.categ_codigo = L3.categ_codCateg_pai
-    
-	LEFT JOIN TREINAMENTO.CATEGORIA AS L4
-		ON L3.categ_codigo = L4.categ_codCateg_pai
-    
-	LEFT JOIN TREINAMENTO.CATEGORIA AS L5
-		ON L4.categ_codigo = L5.categ_codCateg_pai
-WHERE
-    L0.categ_codCateg_pai IS NULL
 
 
 --inner join - todo mundo que tem correlação nas duas tabelas, 
@@ -1210,14 +1117,19 @@ full join treinamento.Customers as cli
 order by codigoCliente
 
 -- Cross Join - produto cartesiano - multiplica as linhas da tabela A com as da tabela B
-select distinct 
+-- Quero pegar todos clientes e multiplicar pela empresa de entrega
+select 
 	a.CompanyName,
+	b.CompanyName,
 	b.City
 from treinamento.Shippers as a
 cross join treinamento.Customers as b
 order by a.CompanyName
 
 --JOIN com mais de uma tabela
+-- "Vinicius tenho muita dificuldade de fazer multiplos joins"
+-- Minha tabela padrão é pedidos, primeiro join é inner entre pedidos e clientes.
+-- Eu não relaciono employee empregado com cliente, relaciono atraves da venda
 select
 	cli.CustomerID as codigoCliente,
 	cli.CompanyName as nomeClinte,
@@ -1237,3 +1149,20 @@ left join treinamento.Shippers as transp
 	on	transp.ShipperID = ped.ShipperID
 
 order by codigoCliente
+
+
+
+-- case when
+select
+NOME,
+SALARIO,
+case 
+	WHEN SALARIO BETWEEN 1 AND 1000 THEN CAST(SALARIO * 1.3 AS DECIMAL(10, 2))
+	WHEN SALARIO BETWEEN 1001 AND 2000 THEN CAST(SALARIO * 1.3 AS DECIMAL(10, 2))
+	WHEN SALARIO > 2000 THEN CAST(SALARIO + 500 AS DECIMAL(10,2))
+	ELSE CAST(SALARIO AS DECIMAL(10, 2))
+	END AS SALARIO_NOVO
+from treinamento.FUNCIONARIO
+ORDER BY SALARIO
+
+SELECT * FROM treinamento.FUNCIONARIO
