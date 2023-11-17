@@ -796,6 +796,7 @@ FROM treinamento.FUNCIONARIO
 
 
 --32: distinct - remove linhas duplicadas do resultado da consulta ** apenas na exibição**
+-- Explicar questão da pessoa com mesmo salario que pode ter
 SELECT  
 	Country--, city, Region
 FROM treinamento.Customers
@@ -1151,18 +1152,4 @@ left join treinamento.Shippers as transp
 order by codigoCliente
 
 
-
--- case when
-select
-NOME,
-SALARIO,
-case 
-	WHEN SALARIO BETWEEN 1 AND 1000 THEN CAST(SALARIO * 1.3 AS DECIMAL(10, 2))
-	WHEN SALARIO BETWEEN 1001 AND 2000 THEN CAST(SALARIO * 1.3 AS DECIMAL(10, 2))
-	WHEN SALARIO > 2000 THEN CAST(SALARIO + 500 AS DECIMAL(10,2))
-	ELSE CAST(SALARIO AS DECIMAL(10, 2))
-	END AS SALARIO_NOVO
-from treinamento.FUNCIONARIO
-ORDER BY SALARIO
-
-SELECT * FROM treinamento.FUNCIONARIO
+-- EXPLICAR: JOIN PRECISAMOS ENTENDER A MODELAGEM, AS RELAÇÕES
